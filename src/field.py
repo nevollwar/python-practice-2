@@ -1,4 +1,5 @@
 import copy
+from src.landscape import Plain
 class Field:
     def __init__(self, width: int, height: int, max_objects: int):
         """
@@ -20,6 +21,7 @@ class Field:
         # 4. Сама сетка: список списков, изначально заполненный None
         # (height строк, в каждой по width пустых ячеек)
         self.grid = [[None for _ in range(self.width)] for _ in range(self.height)]
+        self.landscape_grid = [[Plain() for _ in range(self.width)] for _ in range(self.height)]
 
     # Вспомогательные методы (защита от ошибок)
 
@@ -42,10 +44,15 @@ class Field:
             - увеличиваем счетчик на 1
             - возвращаем True
         """
+        # Получаем ландшафт этой клетки
+        terrain = self.landscape_grid[y][x] if self.is_inside(x, y) else None
+
         if (self.is_inside(x, y)
                 and (self.current_objects_count < self.max_objects)
                 and self.grid[y][x] is None
-                and obj is not None):
+                and obj is not None
+                and (terrain is None or terrain.can_enter(obj))):
+
             self.current_objects_count = self.current_objects_count + 1
             self.grid[y][x] = obj
             return True
@@ -96,9 +103,15 @@ class Field:
             for x in range(self.width):
                 obj = self.grid[y][x]
                 if obj is None:
-                    row_str += "  "
+                    terrain = self.landscape_grid[y][x]
+                    row_str += f"{terrain} "
                 else:
                     row_str += f"{obj} "
             row_str += "X"
             print(row_str)
         print(" ".join(["X"] * (self.width + 2)))
+
+    def set_landscape(self, landscape_obj, x: int, y: int):
+        """Установить ландшафт в клетку (горы, лес и т.д.)"""
+        if self.is_inside(x, y):
+            self.landscape_grid[y][x] = landscape_obj
