@@ -90,15 +90,28 @@ class Field:
         return copy.deepcopy(self)
 
     def display(self):
-        """
-        Вывод поля в консоль (рамка из 'X' и содержимое клеток).
-        """
-        # Верхняя граница: ширина поля + 2 клетки на левую и правую рамку
-        print(" ".join(["X"] * (self.width + 2)))
+        """Вывод поля с идеальной двухстрочной разметкой координат"""
+        # 1. Строка десятков (показываем 1, 2, 3... над десятками)
+        tens_str = "     "
+        for x in range(self.width):
+            if x >= 10:
+                tens_str += f"{x // 10} "
+            else:
+                tens_str += "  "  # для чисел меньше 10 просто пробелы
+        print(tens_str)
 
-        # Перебираем строки поля
+        # 2. Строка единиц (0 1 2 3 4 5 6 7 8 9 0 1 2...)
+        units_str = "     "
+        for x in range(self.width):
+            units_str += f"{x % 10} "
+        print(units_str)
+
+        # 3. Верхняя граница X
+        print("   " + " ".join(["X"] * (self.width + 2)))
+
+        # 4. Игровые строки с номерами Y
         for y in range(self.height):
-            row_str = "X " # Левая граница строки
+            row_str = f"{y:2d} X "
 
             for x in range(self.width):
                 obj = self.grid[y][x]
@@ -107,9 +120,12 @@ class Field:
                     row_str += f"{terrain} "
                 else:
                     row_str += f"{obj} "
+
             row_str += "X"
             print(row_str)
-        print(" ".join(["X"] * (self.width + 2)))
+
+        # 5. Нижняя граница X
+        print("   " + " ".join(["X"] * (self.width + 2)))
 
     def set_landscape(self, landscape_obj, x: int, y: int):
         """Установить ландшафт в клетку (горы, лес и т.д.)"""
