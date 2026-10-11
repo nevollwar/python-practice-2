@@ -4,6 +4,8 @@ from src.base import Base
 from src.landscape import BambooForest, Mountain
 from src.neutral_objects import HealShrine, Whetstone, MakibishiTrap, ArmorKit
 from src.units import Samurai, YariAshigaru, YumiArcher, TeppoGunner, MountedSamurai, Yabusame, Unit
+import logging
+from task4 import Notebook
 
 
 class Game:
@@ -22,6 +24,24 @@ class Game:
         self.setup_map()
 
         self.is_running = True
+
+        # Настройка логирования в файл
+        logging.basicConfig(
+            filename="app.log",
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            encoding="utf-8"
+        )
+        logging.info("Игра запущена. Инициализация поля и объектов.")
+
+        # Интеграция Задачи 4 (Записная книжка штаба)
+        self.notebook = Notebook()
+        self.notebook.add_contact(
+            full_name="Генерал Сакаи",
+            phone_number="+81 90-1234-5678",
+            email="sakai@shogun-army.jp",
+            birth_date="12.08.1560"
+        )
 
     def setup_map(self):
         """Генерация живого мира: леса, горы и лут по всей карте"""
@@ -152,6 +172,39 @@ class Game:
                 self.field.add_object(unit, unit.x, unit.y)
                 print("Не удалось переместиться (клетка занята или непроходима)!")
 
+    def manage_notebook(self):
+        """Интеграция Задачи 4: Меню записной книжки штаба"""
+        while True:
+            print("\n ШТАБ СВЯЗИ (ЗАПИСНАЯ КНИЖКА) ")
+            print("1 - Показать список контактов/командиров")
+            print("2 - Добавить нового союзника")
+            print("3 - Сохранить контакты в JSON")
+            print("4 - Загрузить контакты из JSON")
+            print("0 - Вернуться в игру")
+
+            n_choice = input("Выберите действие: ")
+
+            if n_choice == "1":
+                self.notebook.display_all()
+            elif n_choice == "2":
+                name = input("Введите ФИО: ")
+                phone = input("Введите телефон: ")
+                email = input("Введите e-mail: ")
+                bday = input("Введите день рождения: ")
+                self.notebook.add_contact(name, phone, email, bday)
+                logging.info(f"Добавлен контакт в записную книжку: {name}")
+            elif n_choice == "3":
+                self.notebook.save_to_json("contacts.json")
+                logging.info("Записная книжка сохранена в contacts.json")
+            elif n_choice == "4":
+                try:
+                    self.notebook.load_from_json("contacts.json")
+                    logging.info("Записная книжка загружена из contacts.json")
+                except FileNotFoundError:
+                    print("Файл contacts.json не найден!")
+            elif n_choice == "0":
+                break
+
     def run(self):
         """Главный цикл игры (Game Loop)"""
         print("=== САМУРАЙСКАЯ СТРАТЕГИЯ ЗАПУЩЕНА ===")
@@ -164,6 +217,7 @@ class Game:
             print("2 - Управление юнитом")
             print("3 - Закончить ход")
             print("4 - Справка (обозначения)")
+            print("5 - Записная книжка штаба (Задача 4)")
             print("0 - Выход из игры")
 
             choice = input("Ваш выбор: ")
@@ -177,6 +231,8 @@ class Game:
                 print("Ход завершен! Войска готовы к новым приказам.")
             elif choice == "4":
                 self.show_help()
+            elif choice == "5":
+                self.manage_notebook()
             elif choice == "0":
                 print("Игра окончена. До встречи, сёгун!")
                 self.is_running = False
